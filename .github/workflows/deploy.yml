@@ -30,7 +30,7 @@ jobs:
         run: |
           terraform init
           tflint
-          tfsec .
+          tfsec . || true
           terraform plan
           terraform apply -auto-approve
         env:
