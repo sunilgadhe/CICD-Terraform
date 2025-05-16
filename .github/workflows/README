@@ -1,0 +1,80 @@
+        **************
+        **deploy.yml**
+        **************
+// Define the CI/CD pipeline
+Pipeline "Terraform CI/CD" {
+  
+  // Specify which events trigger this pipeline
+  Triggers = [
+    Push(branch = "main"),
+    PullRequest(targetBranch = "main")
+  ]
+
+  // Declare the jobs that run as part of this pipeline
+  Jobs = [
+    Job "terraform" {
+      // Which runner to use
+      RunsOn = "ubuntu-latest"
+
+      // The sequence of steps to execute
+      Steps = [
+
+        // Step 1: Check out your code
+        Step {
+          Name = "Checkout repository"
+          Action = CheckoutCode()
+        },
+
+        // Step 2: Install Terraform
+        Step {
+          Name = "Set up Terraform"
+          Action = UseAction(
+            repo = "hashicorp/setup-terraform@v2",
+            with = { terraform_version = "1.6.6" }
+          )
+        },
+
+        // Step 3: Install tflint
+        Step {
+          Name = "Install tflint"
+          Action = RunShell(
+            commands = [
+              "curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash"
+            ]
+          )
+        },
+
+        // Step 4: Install tfsec
+        Step {
+          Name = "Install tfsec"
+          Action = RunShell(
+            commands = [
+              "curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash"
+            ]
+          )
+        },
+
+        // Step 5: Initialize, lint, security-check, plan, and deploy
+        Step {
+          Name = "Terraform Lint, Security Check, and Deploy"
+          Action = RunShell(
+            commands = [
+              "terraform init",
+              "tflint",
+              "tfsec . || true",       // continue even if tfsec finds issues
+              "terraform plan",
+              "terraform apply -auto-approve"
+            ]
+          )
+          // Provide AWS credentials and region as environment variables
+          Environment = {
+            AWS_ACCESS_KEY_ID     = Secrets.AWS_ACCESS_KEY_ID,
+            AWS_SECRET_ACCESS_KEY = Secrets.AWS_SECRET_ACCESS_KEY,
+            AWS_REGION            = "us-east-1"
+          }
+        }
+
+      ] // end Steps
+    } // end Job "terraform"
+  ] // end Jobs
+} // end Pipeline
