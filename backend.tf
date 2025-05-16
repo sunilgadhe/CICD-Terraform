@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     bucket         = "sunil-tf-file"
     region         = "us-east-1"
-    key            = "s3-github-actions-2/terraform.tfstate"
+    key            = "s3-github-actions/terraform.tfstate"
     encrypt = true
   }
   required_version = ">=0.13.0"
