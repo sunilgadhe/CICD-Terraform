@@ -7,7 +7,12 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:  # Manual trigger for destroy job
+  workflow_dispatch:
+    inputs:
+      destroy_confirmation:
+        description: "Type 'yes' to confirm infrastructure destroy"
+        required: false
+        default: "no"
 
 jobs:
   terraform:
@@ -41,9 +46,8 @@ jobs:
           AWS_REGION: us-east-1
 
   terraform-destroy:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event.inputs.destroy_confirmation == 'yes'
     runs-on: ubuntu-latest
-    environment: production  # Requires approval before execution (set this up in GitHub repo settings)
     steps:
       - uses: actions/checkout@v3
 
