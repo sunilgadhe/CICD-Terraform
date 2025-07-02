@@ -1,4 +1,4 @@
-# CICD-Terraform
+# CICD-Terraform-Pipeline
 
 **This is to automate aws infra deployment using GitHub action.
 **
